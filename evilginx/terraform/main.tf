@@ -68,13 +68,3 @@ resource "aws_instance" "evilginx_server" {
   }
 }
 
-# --- 5. OUTPUTS ---
-output "instance_public_ip" {
-  description = "The public IP address of the newly created EC2 instance"
-  value       = aws_instance.evilginx_server.public_ip
-}
-
-output "ssh_command" {
-  description = "Suggested SSH command to connect to the instance (replace 'user' with the correct AMI user like ec2-user, ubuntu, or admin)"
-  value       = "ssh -i ${var.private_key_file_path} user@${aws_instance.evilginx_server.public_ip}"
-}
