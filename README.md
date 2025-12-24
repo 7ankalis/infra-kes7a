@@ -5,14 +5,18 @@ This repository contains the Infrastructure-as-Code (IaC) and configuration file
 
 ---
 
-## 💡 Reason Behind Building This Infrastructure
+## 💡 Reason Behind Building This Infrastructure  
 
-The security industry standard for C2 infrastructure often relies on basic single-redirector setups, which are easily detected, fingerprinted, and burned by modern defensive technologies (EDR, NDR, and sophisticated Threat Intelligence Feeds).
+It came to my mind once: Why are there this amount of C2 IPs ina single report on a signle compaign on a single target?  
 
-This project was built to address two critical challenges in modern Red Teaming:
+Turns out that after some research, APTs have a much bigger infrastructure than I thought: It's not a regular VM from which they attack as it is the case in CTFs. (Something I should've known earlier lol).
 
-1.  **High OPSEC Risk:** Minimize the risk of exposing the high-value **Primary C2 Server** (the "Crown Jewel") to Blue Team detection, forensic analysis, or automated scanner activity.
+This project was built to address the following problems:
+
+1.  **High OPSEC Risk:** Minimize the risk of exposing the high-value **Primary C2 Server** to Blue Team detection, forensic analysis, or automated scanner activity.
 2.  **Lack of Resilience:** Create a network that can sustain losses (e.g., a Redirector or Phishing server getting blocked) without compromising the entire operation, allowing for **rapid, automated replacement** of compromised components.
+3.  This will serve me enormously since now I can author full scope DFIR CTF challenges with much better interactivity and all. 😬
+4.  Most importantly, my agony? Because I deserve it? Let's hope this keeps me busy 🫩.
 
 ---
 
