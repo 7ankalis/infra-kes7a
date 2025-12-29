@@ -4,7 +4,7 @@
 [![Vibe: Main Character Energy](https://img.shields.io/badge/Vibe-No%20Cap-blueviolet?style=for-the-badge)](https://github.com/)
 [![Tech: Terraform/Ansible](https://img.shields.io/badge/Stack-IaC%20%2F%20C2-blue?style=for-the-badge&logo=terraform)](https://www.terraform.io/)
 
-> **"Imagine a Quote on evading the Blue Team."**
+> **"Imagine a Quote on evading the Blue Team with a decent methodology."**
 
 ## 🔑 Why I built this 
 
