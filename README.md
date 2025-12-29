@@ -1,4 +1,4 @@
-# 🎭 Project Hydra: Infra Kes7a (Ghost Protocol)
+# 🎭 Infra Kes7a
 
 [![State: Under Development](https://img.shields.io/badge/Status-Cooking..-orange?style=for-the-badge&logo=fastapi)](https://github.com/)
 [![Vibe: Main Character Energy](https://img.shields.io/badge/Vibe-No%20Cap-blueviolet?style=for-the-badge)](https://github.com/)
@@ -10,7 +10,7 @@
 
 Let’s be real: Most CTF labs train us to get clapped in a real-world engagement. Attacking from a single VM, extensive unlimited probing, and much more; as delulu as can be. After digging into how actual APTs move, I realized their infra is a whole ecosystem not just a centralized server or whatsoever with closed ports or whatsoever.
 
-So I built **Infra Kes7a** in an attempt to move away from script kiddie networking and feed my **MCS**.
+So I built **Infra Kes7a** in an attempt to move away from script kiddie networking and feed my **Main Character Syndrome**.
 
 ![](https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExZW12ZzZmaWY4OHJyMnN5ZzE2cnlwZmhicDNhY3gzbXZnNXkxZXJwaSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/G1vplGMypxBcp7kx32/giphy.gif)
 
@@ -39,37 +39,38 @@ Standard C2 is mid. This is elite.
 | **Sustainability** | Manual rebuilds (Tiring and inefficient). | **Automated** Burn & Rebuild via Terraform. |
 | **Reputation** | One IP for everything. Easy block. | **Layered Segregation.** Clean IPs, domain names and traffic. |
 
+> With further releases, **Infra Kes7a** will include other structures depending on other compaign goals. For now let's focus on spear phishing.
 ---
 
 ## 🛠️ The Tech Stack
 
-* **Automation:** Terraform & Ansible.
+* **Automation:** Terraform, Ansible and cloud-init.
 * **Initial Access:** Evilginx (MFA Bypass) & Gophish. (This is as a first release, much more will come on later.
 * **C2:** Mythic C2 or whatever, depending on the target hosts and engagement objectives.
-* **Logic:** Redirectors, Firewalls, Honey pot to attract blue teamers.
-* **Recon:** DNSTwist (Homograph domain magic)
+* **Logic:** AWS, GCP, Azure and DigitalOcean: Redirectors, Firewalls, Honeypot to attract blue teamers.
+* **Domain:** DNSTwist or equivalent.
 
 ---
 
 ## 🧠 The "Layers"
 
-### 1. **The Brain**
-The C2 server: 
+### 1. **The Brain : The C2 server**  
+
 - Doesn't talk to strangers
 - It only accepts connections from the Redirectors/LBs and operators IPs.
 - It's strictly "invite-only" via sessions for each operator.
 - Behind Layers of security and deception. 
 
-### 2. **The Secret Handshake (Layer C)**
+### 2. **The Secret Handshake**
 Nginx Redirectors doing the absolute most. They check for a **Secret Header** in the traffic. 
-* **Got the key?** Data in.
-* **No key?** Cute, nice try. Redirect to the Honey Pot.
+* **Got the key?** Let the data in.
+* **No key?** Cute, nice try. Redirect to the honeypot (still deciding).
 
-### 3. **The Deception**
-This is the "Find Out" part of "Fuck Around." If someone does what you want them to do: analyze and probe your decoy, a high-priority alert is triggered, logged and monitored. Which results in us, receiving intel on how the Blue Team operates without efforts.
+### 3. **The Buffoon (The Deception)**
+This is the "Find Out" part of "Fuck Around." If someone does what you want them to do, analyze and probe your decoy for example, a high-priority alert is triggered, logged and monitored. Which results in us receiving much more intel on how the Blue Team operates and how their tools work without efforts.
 
-### 4. **Disposable Everything (Layer A)**
-"Burn and Rebuild." Suspect a compromise? One command destroys the evidence and spins up a fresh head with a new IP. Persistence, but make it ✨automated✨.
+### 4. **The Resurrection**
+"Burn and Rebuild." Suspect a compromise? One command destroys the evidence and spins up a fresh head with a new IP. Persistence, but make it ✨automated✨. Yayyy!
 
 ---
 
@@ -77,9 +78,9 @@ This is the "Find Out" part of "Fuck Around." If someone does what you want them
 
 ```text
 .
-├── docs                # The receipts (Architecture, Methodology, etc.)
-├── evilginx            # MFA Bypass setup (The Phishlets live here)
-│   ├── ansible         # Config for the proxy
-│   └── terraform       # Infra for the attack node
-├── overview            # The "Big Brain" PDFs (EN/FR)
-└── README.md           # You are here (The vibe check)
+├── docs                # The receipts (Resources, Methodology, Terminology etc.)
+├── evilginx            # 
+│   ├── ansible         # Inventory files for corresponding service (evilginx in this case)
+│   └── terraform       # Terraform files for the corresponponding service (evilginx in this case)
+├── overview            # The AI-Generated v0 PDFs (EN/FR).
+└── README.md           # You are here (vibe check)
