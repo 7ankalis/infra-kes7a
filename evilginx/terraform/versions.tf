@@ -16,6 +16,5 @@ terraform {
 }
 
 provider "aws" {
-  # Set your desired region here, or rely on your AWS_REGION environment variable
-  region = "eu-north-1"
+  region = "eu-north-1" # Stockholm
 }

@@ -1,39 +1,6 @@
-# --- 1. LOCAL KEY GENERATION (for the .pem file) ---
-# Generate a new RSA private key locally
-resource "tls_private_key" "rsa_key" {
-  algorithm = "RSA"
-  rsa_bits  = 4096
-}
+# --- 1. DYNAMIC DATA LOOKUPS ---
+data "aws_vpc" "default" { default = true }
 
-# Write the private key to a local file (evilginx_key.pem)
-resource "local_file" "private_key" {
-  content  = tls_private_key.rsa_key.private_key_pem
-  filename = var.private_key_file_path
-  # Ensure the file has appropriate permissions (read-only for owner)
-  file_permission = "0400"
-}
-
-# Write the public key to a local file (evilginx_key.pub)
-resource "local_file" "public_key" {
-  content  = tls_private_key.rsa_key.public_key_pem
-  filename = var.public_key_path
-}
-
-# --- 2. AWS KEY PAIR RESOURCE (FIXED REFERENCE) ---
-# Create the key pair in AWS using the generated public key content
-resource "aws_key_pair" "evilginx_key" {
-  key_name = "evilginx_key"
-  # FIX: Reference the public key content directly from the generator resource
-  public_key = tls_private_key.rsa_key.public_key_openssh
-}
-
-# --- 3. DATA SOURCES (VPC and Subnet lookup) ---
-# Find the default VPC
-data "aws_vpc" "default" {
-  default = true
-}
-
-# Find the IDs of subnets in the default VPC (FIXED BLOCK: aws_subnets)
 data "aws_subnets" "default_subnet" {
   filter {
     name   = "vpc-id"
@@ -41,30 +8,85 @@ data "aws_subnets" "default_subnet" {
   }
 }
 
-# --- 4. AWS EC2 INSTANCE RESOURCE ---
-resource "aws_instance" "evilginx_server" {
-  # Configuration based on your requirements
-  ami                    = "ami-0fa91bc90632c73c9"
-  instance_type          = "c7i-flex.large" # 2 vCPUs and 4 GiB of RAM
-  key_name               = aws_key_pair.evilginx_key.key_name
-  vpc_security_group_ids = [var.security_group_id]
-
-  # Select the first available subnet found (FIXED REFERENCE: aws_subnets)
-  subnet_id = data.aws_subnets.default_subnet.ids[0]
-  # Assign a public IP address
-  associate_public_ip_address = true
-
-  # Root Block Device (Storage)
-  root_block_device {
-    volume_size           = 30    # GiB
-    volume_type           = "gp3" # General Purpose SSD
-    delete_on_termination = true
-  }
-
-  # Tags for identification
-  tags = {
-    Name    = "evilginx_server"
-    Purpose = "Honeypot"
+# Automatically find the latest Ubuntu 22.04 x86_64 image
+data "aws_ami" "ubuntu" {
+  most_recent = true
+  owners      = ["099720109477"] # Canonical
+  filter {
+    name   = "name"
+    values = ["ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"]
   }
 }
 
+# --- 2. KEY GENERATION ---
+resource "tls_private_key" "rsa_key" {
+  algorithm = "RSA"
+  rsa_bits  = 4096
+}
+
+resource "local_file" "private_key" {
+  content         = tls_private_key.rsa_key.private_key_pem
+  filename        = var.private_key_file_path
+  file_permission = "0400"
+}
+
+resource "aws_key_pair" "evilginx_key" {
+  key_name   = "evilginx_key_dynamic"
+  public_key = tls_private_key.rsa_key.public_key_openssh
+}
+
+# --- 3. DYNAMIC SECURITY GROUP ---
+resource "aws_security_group" "evilginx_sg" {
+  name        = "evilginx-firewall"
+  description = "Allow SSH, HTTP, HTTPS, and DNS for Evilginx"
+  vpc_id      = data.aws_vpc.default.id
+
+  ingress {
+    description = "SSH"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    description = "HTTP/HTTPS"
+    from_port   = 80
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    description = "DNS"
+    from_port   = 53
+    to_port     = 53
+    protocol    = "udp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+# --- 4. EC2 INSTANCE ---
+resource "aws_instance" "evilginx_server" {
+  ami                    = data.aws_ami.ubuntu.id
+  instance_type          = "c7i-flex.large"
+  key_name               = aws_key_pair.evilginx_key.key_name
+  vpc_security_group_ids = [aws_security_group.evilginx_sg.id]
+  subnet_id              = data.aws_subnets.default_subnet.ids[0]
+
+  associate_public_ip_address = true
+
+  root_block_device {
+    volume_size = 30
+    volume_type = "gp3"
+  }
+
+  tags = { Name = "evilginx_server" }
+}

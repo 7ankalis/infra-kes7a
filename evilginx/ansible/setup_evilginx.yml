@@ -108,3 +108,13 @@
         
       args:
         creates: "{{ ansible_user_dir }}/.nvm/nvm.sh"
+# ... your existing tasks ...
+
+  post_tasks:
+    - name: Display SSH connection command
+      debug:
+        msg: 
+          - "-----------------------------------------------------------"
+          - "INSTALLATION COMPLETE! Connect to your server using:"
+          - "ssh -i '{{ ansible_private_key_file }}' {{ ansible_user }}@{{ ansible_host }}"
+          - "-----------------------------------------------------------"
