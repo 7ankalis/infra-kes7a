@@ -1,4 +1,4 @@
-# Evilginx Infrastructure Module
+# All About Setting Up Evilginx Infrastructure 
 
 This directory contains the automation code for deploying an Evilginx instance on AWS. It uses a combination of Terraform for the hardware and Ansible for the software setup.
 
