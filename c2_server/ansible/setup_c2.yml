@@ -1,0 +1,60 @@
+---
+- name: Configure C2 Server Base Setup
+  hosts: c2_setup
+  become: yes # Most tasks require root privileges
+
+  tasks:
+    - name: ⚙️ Update apt cache and upgrade all packages
+      ansible.builtin.apt:
+        update_cache: yes
+        upgrade: 'full'
+      tags:
+        - packages
+
+    - name: 🛠️ Install productivity tools
+      ansible.builtin.apt:
+        name:
+          - btop
+          - net-tools
+          - build-essential
+          - bat  # Installs the 'batcat' binary on Ubuntu
+          - git
+        state: present
+      tags:
+        - packages
+
+# --- User-specific configuration ---
+- name: Configure User Environment for 'ubuntu'
+  hosts: c2_setup
+  become: no # Run these tasks as the ansible_user (ubuntu)
+
+  tasks:
+    - name: 📁 Ensure .local/bin directory exists
+      ansible.builtin.file:
+        path: "{{ ansible_user_dir }}/.local/bin"
+        state: directory
+        mode: '0755'
+
+    - name: 🔗 Create symbolic link for bat -> batcat
+      ansible.builtin.file:
+        src: /usr/bin/batcat
+        dest: "{{ ansible_user_dir }}/.local/bin/bat"
+        state: link
+        force: yes # Overwrite if it exists
+
+    - name: ✍️ Add 'bat' alias to .bashrc for interactive shells
+      ansible.builtin.lineinfile:
+        path: "{{ ansible_user_dir }}/.bashrc"
+        line: 'alias bat="batcat"'
+        create: yes
+        insertafter: EOF
+        state: present
+
+  post_tasks:
+    - name: ✅ Display Connection Info
+      ansible.builtin.debug:
+        msg:
+          - "-----------------------------------------------------------"
+          - "C2 SERVER SETUP COMPLETE!"
+          - "Connect using: ssh -i '{{ ansible_private_key_file }}' {{ ansible_user }}@{{ ansible_host }}"
+          - "-----------------------------------------------------------"

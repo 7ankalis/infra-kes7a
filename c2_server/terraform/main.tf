@@ -30,15 +30,15 @@ resource "local_file" "private_key" {
   file_permission = "0400"
 }
 
-resource "aws_key_pair" "evilginx_key" {
-  key_name   = "evilginx_key_dynamic"
+resource "aws_key_pair" "c2_key" {
+  key_name   = "c2_key_dynamic"
   public_key = tls_private_key.rsa_key.public_key_openssh
 }
 
 # --- 3. DYNAMIC SECURITY GROUP ---
-resource "aws_security_group" "evilginx_sg" {
-  name        = "evilginx-firewall"
-  description = "Allow SSH, HTTP, HTTPS, and DNS for Evilginx"
+resource "aws_security_group" "c2_sg" {
+  name        = "c2-firewall"
+  description = "Allow SSH for C2 Server"
   vpc_id      = data.aws_vpc.default.id
 
   ingress {
@@ -46,22 +46,6 @@ resource "aws_security_group" "evilginx_sg" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    description = "HTTP/HTTPS"
-    from_port   = 80
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    description = "DNS"
-    from_port   = 53
-    to_port     = 53
-    protocol    = "udp"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
@@ -74,19 +58,19 @@ resource "aws_security_group" "evilginx_sg" {
 }
 
 # --- 4. EC2 INSTANCE ---
-resource "aws_instance" "evilginx_server" {
+resource "aws_instance" "c2_server" {
   ami                    = data.aws_ami.ubuntu.id
-  instance_type          = "c7i-flex.large" # 4RAM 2vCPUs
-  key_name               = aws_key_pair.evilginx_key.key_name
-  vpc_security_group_ids = [aws_security_group.evilginx_sg.id]
+  instance_type          = var.instance_type
+  key_name               = aws_key_pair.c2_key.key_name
+  vpc_security_group_ids = [aws_security_group.c2_sg.id]
   subnet_id              = data.aws_subnets.default_subnet.ids[0]
 
   associate_public_ip_address = true
 
   root_block_device {
-    volume_size = 30
+    volume_size = var.disk_size
     volume_type = "gp3"
   }
 
-  tags = { Name = "evilginx_server" }
+  tags = { Name = "c2_server" }
 }
