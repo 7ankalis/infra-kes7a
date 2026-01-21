@@ -1,8 +1,8 @@
 resource "aws_cloudfront_distribution" "c2_distribution" {
-  enabled             = true
-  is_ipv6_enabled     = true
-  comment             = "C2 Fronting Distribution"
-  price_class         = "PriceClass_100"
+  enabled         = true
+  is_ipv6_enabled = true
+  comment         = "C2 Fronting Distribution"
+  price_class     = "PriceClass_100"
 
   origin {
     domain_name = aws_lb.c2_alb.dns_name

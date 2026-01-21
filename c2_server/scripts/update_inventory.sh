@@ -1,11 +1,12 @@
 #!/bin/bash
 
 # --- Configuration ---
+
 # Script is in 'ansible/', terraform is one level up
 TF_DIR="../terraform"
-# MODIFIED: Changed inventory file name
-INVENTORY_FILE="./inventory_c2.ini"
-# MODIFIED: Changed key file name
+
+INVENTORY_FILE="../ansible/inventory_c2.ini"
+
 # Ensure we have the absolute path to the key for Ansible
 KEY_PATH="$(readlink -f ../terraform/c2_key.pem)"
 

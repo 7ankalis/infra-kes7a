@@ -1,60 +1,113 @@
 ---
-- name: Configure C2 Server Base Setup
+- name: Configure C2 Server with Nginx Proxy
   hosts: c2_setup
-  become: yes # Most tasks require root privileges
+  vars:
+    # Set this to the port your C2 (Havoc/Sliver/Cobalt) listens on
+    c2_backend_port: 5000
+    # Explicitly define the target user for home directory tasks
+    target_user: ubuntu
 
   tasks:
+    # --- 1. SYSTEM UPDATES & PACKAGES (Runs as Root) ---
     - name: ⚙️ Update apt cache and upgrade all packages
+      become: yes
       ansible.builtin.apt:
         update_cache: yes
         upgrade: 'full'
-      tags:
-        - packages
+      tags: [packages]
 
-    - name: 🛠️ Install productivity tools
+    - name: 🛠️ Install productivity tools and Nginx
+      become: yes
       ansible.builtin.apt:
         name:
           - btop
           - net-tools
           - build-essential
-          - bat  # Installs the 'batcat' binary on Ubuntu
+          - bat
           - git
+          - nginx
         state: present
-      tags:
-        - packages
+      tags: [packages]
 
-# --- User-specific configuration ---
-- name: Configure User Environment for 'ubuntu'
-  hosts: c2_setup
-  become: no # Run these tasks as the ansible_user (ubuntu)
+    - name: 🚀 Ensure Nginx is started and enabled
+      become: yes
+      ansible.builtin.service:
+        name: nginx
+        state: started
+        enabled: yes
 
-  tasks:
+    # --- 2. NGINX CONFIGURATION (Runs as Root) ---
+    - name: 📝 Configure Nginx as C2 Reverse Proxy
+      become: yes
+      ansible.builtin.copy:
+        dest: /etc/nginx/sites-available/c2_proxy
+        content: |
+          server {
+              listen 80;
+              server_name _;
+
+              location / {
+                  proxy_set_header Host $host;
+                  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                  proxy_set_header X-Real-IP $remote_addr;
+                  proxy_set_header X-Forwarded-Proto $scheme;
+                  
+                  # Forwarding to internal C2 port
+                  proxy_pass http://127.0.0.1:{{ c2_backend_port }};
+              }
+          }
+      notify: Reload Nginx
+
+    - name: 🔗 Enable C2 Proxy site
+      become: yes
+      ansible.builtin.file:
+        src: /etc/nginx/sites-available/c2_proxy
+        dest: /etc/nginx/sites-enabled/c2_proxy
+        state: link
+
+    - name: 🗑️ Remove default Nginx site
+      become: yes
+      ansible.builtin.file:
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+      notify: Reload Nginx
+
+    # --- 3. USER ENVIRONMENT (Runs as ubuntu user) ---
     - name: 📁 Ensure .local/bin directory exists
       ansible.builtin.file:
-        path: "{{ ansible_user_dir }}/.local/bin"
+        path: "/home/{{ target_user }}/.local/bin"
         state: directory
         mode: '0755'
+        owner: "{{ target_user }}"
+        group: "{{ target_user }}"
 
     - name: 🔗 Create symbolic link for bat -> batcat
       ansible.builtin.file:
         src: /usr/bin/batcat
-        dest: "{{ ansible_user_dir }}/.local/bin/bat"
+        dest: "/home/{{ target_user }}/.local/bin/bat"
         state: link
-        force: yes # Overwrite if it exists
+        force: yes
 
-    - name: ✍️ Add 'bat' alias to .bashrc for interactive shells
+    - name: ✍️ Add 'bat' alias to .bashrc
       ansible.builtin.lineinfile:
-        path: "{{ ansible_user_dir }}/.bashrc"
+        path: "/home/{{ target_user }}/.bashrc"
         line: 'alias bat="batcat"'
         create: yes
-        insertafter: EOF
         state: present
 
-  post_tasks:
+    # --- 4. FINAL STATUS ---
     - name: ✅ Display Connection Info
       ansible.builtin.debug:
         msg:
           - "-----------------------------------------------------------"
-          - "C2 SERVER SETUP COMPLETE!"
-          - "Connect using: ssh -i '{{ ansible_private_key_file }}' {{ ansible_user }}@{{ ansible_host }}"
+          - "C2 SERVER SETUP COMPLETE WITH NGINX!"
+          - "Nginx is proxying: CloudFront -> ALB -> Nginx(:80) -> C2(:{{ c2_backend_port }})"
+          - "Connect using: ssh -i '{{ ansible_private_key_file }}' {{ target_user }}@{{ ansible_host }}"
           - "-----------------------------------------------------------"
+
+  handlers:
+    - name: Reload Nginx
+      become: yes
+      ansible.builtin.service:
+        name: nginx
+        state: reloaded
