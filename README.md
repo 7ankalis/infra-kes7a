@@ -6,6 +6,14 @@
 
 > **"Advanced persistent threats aren't built on single servers; they are built on resilient ecosystems."**
 
+
+<p align="center">
+  <img src="docs/c2-infra.png" alt="Operational Overview of the C2 infrastructure."><br>
+  <em>Operational Overview of the C2 infrastructure.</em>
+</p>
+
+
+
 ## Why I built this 
 
 Let’s be real: Most CTF labs train us to get clapped in a real-world engagement. Attacking from a single VM, extensive unlimited probing, and much more; as delulu as can be. After digging into how actual APTs move, I realized their infra is a whole ecosystem not just a centralized server or whatsoever with closed ports or whatsoever.
