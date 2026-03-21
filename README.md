@@ -1,4 +1,4 @@
-# 🎭  Infra Kes7a
+# Infra Kes7a
 
 [![Status: Development](https://img.shields.io/badge/Status-In--Development-orange?style=flat-square&logo=terraform)](https://github.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](https://github.com/)
@@ -6,18 +6,43 @@
 
 > **"Advanced persistent threats aren't built on single servers; they are built on resilient ecosystems."**
 
-## 🔑 Operational Rationale
+## Why I built this 
 
-Standard security training often emphasizes attacking from a single, static VM. In a modern enterprise environment, this is a recipe for immediate detection and attribution. **Infra Kes7a** was engineered to simulate true Tier-1 adversary tradecraft by moving away from centralized infrastructure.
+Let’s be real: Most CTF labs train us to get clapped in a real-world engagement. Attacking from a single VM, extensive unlimited probing, and much more; as delulu as can be. After digging into how actual APTs move, I realized their infra is a whole ecosystem not just a centralized server or whatsoever with closed ports or whatsoever.
+So I built **Infra Kes7a** in an attempt to move away from script kiddie networking and feed my **Main Character Syndrome**.
 
-This project implements a multi-layered, hybrid-cloud architecture that separates internal command logic from public-facing collection points, ensuring that the discovery of a single component does not compromise the entire operation.
+![](https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExZW12ZzZmaWY4OHJyMnN5ZzE2cnlwZmhicDNhY3gzbXZnNXkxZXJwaSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/G1vplGMypxBcp7kx32/giphy.gif)
 
-## 💎 Technical Objectives
+##  Bring Your Own APT Lab: What this infrastructure can be used for
 
-- **Infrastructure Survivability:** Implementing a "Burn & Rebuild" cycle where redirectors can be rotated in minutes without losing C2 sessions.
-- **Traffic Obfuscation:** Utilizing Layer 7 Nginx filtering and CDN masking to blend C2 heartbeats with legitimate enterprise web traffic.
-- **Backend Isolation:** Establishing a secure WireGuard-based "Operations Network" where the Team Server remains entirely hidden from the public internet.
-- **Automated Provisioning:** Using Terraform and Ansible to eliminate manual configuration errors and "infrastructure fingerprinting."
+Of course, Red Team engagements. But not only that.
+
+### **APT Simulation & Emulation**
+
+Simply put, Infra Kes7a provides a realistic, multi-tier environment around APT simulation so that Blue Teams can test detection engineering against techniques like CDN masking and cross-cloud redirection. So, BYOAL
+
+![](https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExNzcxbGQ0eWV4aWRlamZ6YmFxY2J4bmxxcWE5cmU4MWFxN3MycjNpbiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/htAMDLwwR1VSl4DG5Q/giphy.gif)
+
+### **Adversary Emulation (Purple Teaming)**
+The framework could be seen as a consistent, repeatable lab for Purple Team exercises. It enables security teams to validate the effectiveness of their solutions against multi-stage threat.
+
+### **More fun and reallistic DFIR challenges**
+
+I know how tiring DFIR challenges can be and how it takes too much time when we're authoring a task replicating a multi-layer attack. So here's an automated way to build high fidelity challenges.
+
+## Key Takeways  
+
+This project is for when you want to learn more about:
+- How APTs maintain persistence at the infrastructure level (not the local persistence via implants and all).
+
+- How spear phishing is crafted and how hard it can get to spot. 
+
+- Building and connecting cloud resources from different providers.
+
+- How L3 firewalls operate and see them in action.
+
+- What IaS is through automating the process of building, configuring, running and tearing down the infrastructure.
+
 
 ---
 
@@ -34,42 +59,74 @@ This project implements a multi-layered, hybrid-cloud architecture that separate
 
 ## 🛠️ The Tech Stack
 
-* **Orchestration:** Terraform (Provisioning), Ansible (Configuration), Cloud-init.
+* **Orchestration:** Terraform (Provisioning), Ansible (Configuration).
 * **Initial Access:** Evilginx (MFA Bypass) & GoPhish (Isolated Stage 0).
-* **C2 Frameworks:** Support for Mythic, Havoc, or Sliver via internal Nginx Collectors.
+* **C2 Frameworks:** Mythic, Havoc, Sliver or whatever.
 * **Network Layer:** WireGuard (Encrypted Tunneling), Nginx (Reverse Proxy & Filtering).
 * **Cloud Providers:** Redundant deployment across AWS, Azure, and DigitalOcean.
 
 ---
 
-## 🧠 Infrastructure Layers
+## 🧠 The "Layers"
 
-### 1. The Internal Operations Network (The Brain)
-The Team Server sits in a private environment with no direct internet access. It communicates only with an **Internal Nginx Collector** which acts as a traffic switchboard, routing data between different engagement stages.
 
-### 2. Front-End Bastions (The Redirectors)
-Public-facing VPS instances acting as Layer 4/7 redirectors. These servers perform header validation; if a request does not contain the "Secret Key" defined in the Malleable C2 profile, the traffic is dropped or sent to a decoy site to mislead defenders.
 
-### 3. Active Deception (The Decoy)
-Each redirector is paired with a high-reputation "Front" site. This ensures that passive scanners or Blue Team investigators see a legitimate business entity (e.g., a Healthcare blog or Finance portal) rather than an empty server or a default Nginx page.
+### 1. **The Brain : The C2 server**  
 
-### 4. Automated Persistence
-By utilizing Infrastructure as Code (IaC), the operator can "Burn" a compromised domain or IP address and "Resurrect" the infrastructure in a different cloud region with a single command, maintaining operational momentum.
+
+
+- Doesn't talk to strangers
+
+- It only accepts connections from the Redirectors/LBs and operators IPs.
+
+- It's strictly "invite-only" via sessions for each operator.
+
+- Behind Layers of security and deception. 
+
+
+
+### 2. **The Secret Handshake**
+
+Nginx Redirectors doing the absolute most. They check for a **Secret Header** in the traffic. 
+
+* **Got the key?** Let the data in.
+
+* **No key?** Cute, nice try. Redirect to the honeypot (still deciding).
+
+
+
+### 3. **The Buffoon (The Deception)**
+
+This is the "Find Out" part of "Fuck Around." If someone does what you want them to do, analyze and probe your decoy for example, a high-priority alert is triggered, logged and monitored. Which results in us receiving much more intel on how the Blue Team operates and how their tools work without efforts.
+
+
+
+### 4. **The Resurrection**
+
+"Burn and Rebuild." Suspect a compromise? One command destroys the evidence and spins up a fresh head with a new IP. Persistence, but make it ✨automated✨. Yayyy!
+
+
 
 ---
 
-## 📂 Project Structure
+
+
+## 📂 Project Structure (Current Progress)
+
+
 
 ```text
+
 .
-├── core_ops            # Backend: Team Server & Internal Collector logic
-├── redirectors         # Front-End: Nginx, WireGuard, and L7 filtering automation
-├── phishing            # Stage 0: Infrastructure for delivery and credential harvesting
-├── terraform           # IaC modules for multi-cloud provisioning
-└── docs                # Operational methodology and OPSEC guidelines
-```
 
----
+├── docs                # The receipts (Resources, Methodology, Terminology etc.)
 
-### Next Step for you:
-Would you like me to provide the **Terraform main.tf** file to automatically spin up your first Cloud Redirector and link it to your local machine?
+├── evilginx            # 
+
+│   ├── ansible         # Inventory files for corresponding service (evilginx in this case)
+
+│   └── terraform       # Terraform files for the corresponponding service (evilginx in this case)
+
+├── overview            # The AI-Generated v0 PDFs (EN/FR).
+
+└── README.md           # You are here (vibe check)
