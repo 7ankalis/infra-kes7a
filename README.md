@@ -8,7 +8,7 @@
 
 
 <p align="center">
-  <img src="docs/c2-infra.png" alt="Operational Overview of the C2 infrastructure."><br>
+  <img src="docs/infra-kes7a.png" alt="Operational Overview of the C2 infrastructure."><br>
   <em>Operational Overview of the C2 infrastructure.</em>
 </p>
 
