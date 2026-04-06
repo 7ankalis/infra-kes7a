@@ -4,7 +4,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](https://github.com/)
 [![Stack: Hybrid Cloud C2](https://img.shields.io/badge/Stack-IaC%20%2F%20Red%20Team-lightgrey?style=flat-square&logo=linux)](https://www.terraform.io/)
 
-> **"Advanced persistent threats aren't built on single servers; they are built on resilient ecosystems."**
+> **"Advanced persistent threats aren't built on single servers; they are built on resilient ecosystems.", Me**
 
 
 <p align="center">
