@@ -1,0 +1,93 @@
+graph TD
+    subgraph "Internet/Target Environment"
+        A[Target User]
+        B[Blue Team / Security Scanners]
+    end
+
+    subgraph "High-Risk/Disposable Layer"
+        C[Initial Access Delivery]
+        C_Gophish["Gophish (Email)"]
+        C_Evilginx["Evilginx (MFA Bypass)"]
+        C_Domains["Homoglyph Domains (DNSTwist)"]
+        C --> A
+    end
+
+    subgraph "CDN Fronting"
+        CDN[CDN Provider e.g., Cloudflare/Akamai]
+    end
+
+    subgraph "Redirector Layer (Evasion/Gateway)"
+        direction LR
+        R[Nginx Reverse Proxy]
+        R_Logic{"Header Check (X-Source-Key)"}
+        R -- "Traffic" --> R_Logic
+    end
+
+    subgraph "Secured Zone (Private Network)"
+        subgraph "C2 Core Layer"
+            CORE[Mythic C2 Server]
+            FW[Zero Trust Firewall (UFW/iptables)]
+            CORE -- "Strictly Whitelisted IP Access" --- FW
+        end
+
+        subgraph "Decoy/Canary Trap Layer"
+            DECOY[Decoy Listener]
+        end
+    end
+
+    subgraph "Control/Management Plane"
+        AUTOMATION[Automation & IaC]
+        IAC_TF["Terraform (Provisioning)"]
+        IAC_ANSI["Ansible (Configuration)"]
+        AUTOMATION -- Manages --> IAC_TF & IAC_ANSI
+    end
+
+    subgraph "Support/Monitoring"
+        LOG[ELK Stack]
+        HEALTH[Blacklist/Health Checks]
+    end
+
+    %% Connections and Workflows
+    A -- "Clicks Link/Submits Creds" --> C_Evilginx
+    A -- "Receives Phishing Email" --> C_Gophish
+    B -- "Scans/Investigates" --> CDN
+
+    Implant[Implant on Target Machine] -- "C2 Beacon with Secret Header" --> CDN
+    CDN -- "Forwards Traffic" --> R
+
+    R_Logic -- "Header Present?<br/>(Secured Core Channel)" --> FW
+    FW -- "Allows Connection" --> CORE
+    R_Logic -- "Header Absent?<br/>(Decoy/Alert Channel)" --> DECOY
+
+    DECOY -- "Connection Detected!" --> TRIGGER_ALERT[Webhook/API Trigger]
+    TRIGGER_ALERT -- "Critical OPSEC Alert!" --> AUTOMATION
+
+    AUTOMATION -- "1. Destroy Compromised Redirector" --> IAC_TF
+    IAC_TF -- "2. Provision New Redirector" --> R_New[New Nginx Instance]
+    IAC_ANSI -- "3. Configure New Redirector" --> R_New
+    AUTOMATION -- "4. Update Firewall Rule" --> IAC_ANSI
+    IAC_ANSI -- "Updates Whitelist IP" --> FW
+
+    CORE -- "Sends Logs" --> LOG
+    R -- "Sends Logs" --> LOG
+    DECOY -- "Sends Logs" --> LOG
+    AUTOMATION -- "Monitors via..." --> HEALTH
+
+    %% Styling - Improved color scheme for better contrast
+    classDef core fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000;
+    classDef automation fill:#f3e5f5,stroke:#4a148c,stroke-width:2px,color:#000;
+    classDef redirector fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000;
+    classDef disposable fill:#e8f5e8,stroke:#1b5e20,stroke-width:2px,color:#000;
+    classDef decoy fill:#ffebee,stroke:#b71c1c,stroke-width:2px,color:#000;
+    classDef support fill:#fafafa,stroke:#424242,stroke-width:2px,color:#000;
+    classDef internet fill:#eceff1,stroke:#37474f,stroke-width:2px,color:#000;
+    classDef cdn fill:#e0f2f1,stroke:#004d40,stroke-width:2px,color:#000;
+
+    class CORE,FW core;
+    class AUTOMATION,IAC_TF,IAC_ANSI automation;
+    class R,R_Logic,R_New redirector;
+    class C,C_Gophish,C_Evilginx,C_Domains disposable;
+    class DECOY,TRIGGER_ALERT decoy;
+    class LOG,HEALTH support;
+    class A,B internet;
+    class CDN cdn;
